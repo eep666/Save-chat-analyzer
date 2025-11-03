@@ -1,4 +1,3 @@
-
 import { GoogleGenAI } from "@google/genai";
 import type { AnalysisReportData } from '../types';
 import { SYSTEM_INSTRUCTION, RESPONSE_SCHEMA } from '../constants';
@@ -18,7 +17,7 @@ export async function analyzeChatLog(chatLog: string, instructorNames: string): 
 
   try {
     const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: "gemini-2.5-pro",
         contents: userPrompt,
         config: {
             systemInstruction: SYSTEM_INSTRUCTION,
