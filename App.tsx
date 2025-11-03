@@ -104,8 +104,28 @@ const App: React.FC = () => {
 
       <main className="container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="max-w-4xl mx-auto">
-          {error && (
-            <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-md" role="alert">
+          {error && !error.includes("API key") && (
+             <div className="bg-red-100 dark:bg-red-900/20 border-l-4 border-red-500 text-red-800 dark:text-red-200 p-4 sm:p-6 mb-6 rounded-lg shadow" role="alert">
+              <p className="font-bold text-lg">Analysis Failed</p>
+              <div className="mt-2 text-slate-700 dark:text-slate-300">
+                <p>We couldn't generate the report from the input, either because:</p>
+                <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
+                    <li>The data you submitted (chat log or file) was not in the correct format, was too long, or contained content the AI could not process.</li>
+                    <li>There is a temporary issue or outage with the AI backend (Gemini API).</li>
+                </ul>
+                <p className="mt-4">Please check your input and try again. If the problem persists, the service may be temporarily unavailable.</p>
+                
+                <div className="mt-4 pt-3 border-t border-red-300 dark:border-red-700/50">
+                  <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">TECHNICAL DETAILS:</p>
+                  <p className="text-xs font-mono bg-red-50 dark:bg-red-900/30 p-2 rounded mt-1 text-slate-600 dark:text-slate-300">
+                    {error}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+          {error && error.includes("API key") && (
+             <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-md" role="alert">
               <p className="font-bold">Error</p>
               <p>{error}</p>
             </div>

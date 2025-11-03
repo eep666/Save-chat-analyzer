@@ -16,7 +16,7 @@ export async function analyzeChatLog(chatLog: string, instructorNames: string): 
   `;
 
   try {
-    const response = await ai.models.generateContent({
+    const responseStream = await ai.models.generateContentStream({
         model: "gemini-2.5-pro",
         contents: userPrompt,
         config: {
@@ -28,15 +28,27 @@ export async function analyzeChatLog(chatLog: string, instructorNames: string): 
         },
     });
 
-    const jsonText = response.text.trim();
+    let aggregatedResponse = "";
+    for await (const chunk of responseStream) {
+        aggregatedResponse += chunk.text;
+    }
+
+    const jsonText = aggregatedResponse.trim();
+    if (!jsonText) {
+        throw new Error("The AI returned an empty response. The input might be too complex or contain restricted content.");
+    }
+    
     const data = JSON.parse(jsonText);
     return data as AnalysisReportData;
 
   } catch (error) {
-    console.error("Error calling Gemini API:", error);
-    if (error instanceof Error && (error.message.includes('API key not valid') || error.message.includes('invalid'))) {
-        throw new Error("The provided API key is not valid. Please check it and try again.");
+    console.error("Error processing Gemini API response:", error);
+    if (error instanceof SyntaxError) {
+        throw new Error("The AI returned incomplete or malformed data. This can happen with very complex requests or a service interruption. Please try again.");
     }
-    throw new Error("Failed to get a valid analysis from the AI. The content may be malformed or the service may be unavailable.");
+    if (error instanceof Error) {
+        throw new Error(error.message);
+    }
+    throw new Error("An unknown error occurred while processing the AI response.");
   }
 }
