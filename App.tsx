@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import type { AnalysisReportData } from './types';
 import { analyzeChatLog } from './services/geminiService';
@@ -6,10 +7,18 @@ import AnalysisReport from './components/AnalysisReport';
 import LoadingSpinner from './components/LoadingSpinner';
 import { HeaderIcon } from './components/icons';
 
+interface QuotaErrorDetails {
+  metric: string;
+  limit: string;
+  retryDelay: string;
+}
+
 const App: React.FC = () => {
   const [report, setReport] = useState<AnalysisReportData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [quotaErrorDetails, setQuotaErrorDetails] = useState<QuotaErrorDetails | null>(null);
+
 
   const handleAnalyze = async (chatLog: string, instructorNames: string) => {
     if (!chatLog.trim()) {
@@ -24,6 +33,7 @@ const App: React.FC = () => {
     setIsLoading(true);
     setError(null);
     setReport(null);
+    setQuotaErrorDetails(null);
 
     try {
       const result = await analyzeChatLog(chatLog, instructorNames);
@@ -32,15 +42,42 @@ const App: React.FC = () => {
       console.error(e);
       const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred during analysis.';
       
-      // Handle specific API key errors
-      if (errorMessage.includes('API key not valid') ||
-          errorMessage.includes('invalid') ||
-          errorMessage.includes('API Key must be set') ||
-          errorMessage.includes('Requested entity was not found')) {
-        setError("The configured API key is invalid or missing. Please ensure the API_KEY environment variable is set correctly in your hosting provider's settings and that you have redeployed the application since making the change.");
-      } else {
-        setError(errorMessage);
+      let isQuotaError = false;
+      
+      try {
+        if (errorMessage.includes('RESOURCE_EXHAUSTED') || errorMessage.includes('429')) {
+          const errorJson = JSON.parse(errorMessage);
+          const errorDetails = errorJson.error || {};
+          if (errorDetails.status === 'RESOURCE_EXHAUSTED' || errorDetails.code === 429) {
+            isQuotaError = true;
+            const details = errorDetails.details || [];
+            const quotaFailure = details.find((d: any) => d['@type'] === 'type.googleapis.com/google.rpc.QuotaFailure');
+            const retryInfo = details.find((d: any) => d['@type'] === 'type.googleapis.com/google.rpc.RetryInfo');
+            
+            const violation = quotaFailure?.violations?.[0];
+            
+            setQuotaErrorDetails({
+              metric: violation?.quotaMetric?.replace('generate_content_', '').replace('_token_count', ' tokens') || 'Unknown metric',
+              limit: violation?.quotaValue ? `${parseInt(violation.quotaValue).toLocaleString()}` : 'Not specified',
+              retryDelay: retryInfo?.retryDelay?.replace('s', ' seconds') || 'a moment'
+            });
+          }
+        }
+      } catch (parseError) {
+        // Not a parsable JSON error, fall through to generic handling.
       }
+
+      if (!isQuotaError) {
+         if (errorMessage.includes('API key not valid') ||
+            errorMessage.includes('invalid') ||
+            errorMessage.includes('API Key must be set') ||
+            errorMessage.includes('Requested entity was not found')) {
+          setError("The configured API key is invalid or missing. Please ensure the API_KEY environment variable is set correctly in your hosting provider's settings and that you have redeployed the application since making the change.");
+        } else {
+          setError(errorMessage);
+        }
+      }
+
     } finally {
       setIsLoading(false);
     }
@@ -50,6 +87,7 @@ const App: React.FC = () => {
     setReport(null);
     setError(null);
     setIsLoading(false);
+    setQuotaErrorDetails(null);
   }
   
   const renderContent = () => {
@@ -104,6 +142,36 @@ const App: React.FC = () => {
 
       <main className="container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="max-w-4xl mx-auto">
+          {quotaErrorDetails && (
+            <div className="bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-500 text-amber-800 dark:text-amber-200 p-4 sm:p-6 mb-6 rounded-lg shadow" role="alert">
+              <p className="font-bold text-lg">API Quota Exceeded</p>
+              <div className="mt-2 text-slate-700 dark:text-slate-300">
+                <p>The analysis failed because the chat log is too large for the current API plan (Free Tier).</p>
+                <p className="mt-4 font-semibold">What you can do:</p>
+                <ul className="list-disc list-inside mt-2 space-y-2 text-sm">
+                    <li>
+                        <strong>Reduce Input Size:</strong> Try again with a smaller section of the chat log.
+                    </li>
+                    <li>
+                        <strong>Upgrade Your Plan:</strong> For large-scale analysis, you can upgrade your Gemini API plan to increase the rate limits.
+                        <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noopener noreferrer" className="text-indigo-600 dark:text-indigo-400 font-medium hover:underline ml-1">
+                            Manage your billing details.
+                        </a>
+                    </li>
+                </ul>
+                
+                <div className="mt-4 pt-3 border-t border-amber-300 dark:border-amber-700/50">
+                  <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">TECHNICAL DETAILS:</p>
+                  <ul className="text-xs font-mono bg-amber-100 dark:bg-amber-900/30 p-2 rounded mt-1 text-slate-600 dark:text-slate-300 space-y-1">
+                    <li><span className="font-semibold">Limit Type:</span> {quotaErrorDetails.metric}</li>
+                    <li><span className="font-semibold">Current Limit:</span> {quotaErrorDetails.limit} per minute</li>
+                    <li><span className="font-semibold">Suggested Retry:</span> Wait {quotaErrorDetails.retryDelay} and try again.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+
           {error && !error.includes("API key") && (
              <div className="bg-red-100 dark:bg-red-900/20 border-l-4 border-red-500 text-red-800 dark:text-red-200 p-4 sm:p-6 mb-6 rounded-lg shadow" role="alert">
               <p className="font-bold text-lg">Analysis Failed</p>
