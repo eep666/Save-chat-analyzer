@@ -24,6 +24,7 @@ export async function analyzeChatLog(chatLog: string, instructorNames: string): 
             responseMimeType: "application/json",
             // @ts-ignore - The schema type is compatible
             responseSchema: RESPONSE_SCHEMA,
+            thinkingConfig: { thinkingBudget: 32768 }
         },
     });
 
