@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import type { AnalysisReportData } from './types';
 import { analyzeChatLog } from './services/geminiService';
 import ChatInputForm from './components/ChatInputForm';
@@ -7,48 +6,10 @@ import AnalysisReport from './components/AnalysisReport';
 import LoadingSpinner from './components/LoadingSpinner';
 import { HeaderIcon } from './components/icons';
 
-// Add type definition for window.aistudio to enable API key selection
-// FIX: Replaced anonymous object with a named AIStudio interface to resolve a global type declaration conflict.
-interface AIStudio {
-  hasSelectedApiKey: () => Promise<boolean>;
-  openSelectKey: () => Promise<void>;
-}
-
-declare global {
-  interface Window {
-    aistudio?: AIStudio;
-  }
-}
-
 const App: React.FC = () => {
   const [report, setReport] = useState<AnalysisReportData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [hasApiKey, setHasApiKey] = useState<boolean>(false);
-
-  useEffect(() => {
-    const checkApiKey = async () => {
-      if (window.aistudio) {
-        try {
-          const keySelected = await window.aistudio.hasSelectedApiKey();
-          setHasApiKey(keySelected);
-        } catch (e) {
-          console.error("Error checking for API key:", e);
-          setHasApiKey(false);
-        }
-      }
-    };
-    checkApiKey();
-  }, []);
-
-  const handleSelectKey = async () => {
-    if (window.aistudio) {
-      await window.aistudio.openSelectKey();
-      // Optimistically set hasApiKey to true to improve UX and handle potential race conditions.
-      setHasApiKey(true);
-      setError(null); // Clear previous errors after selecting a new key
-    }
-  };
 
   const handleAnalyze = async (chatLog: string, instructorNames: string) => {
     if (!chatLog.trim()) {
@@ -71,13 +32,12 @@ const App: React.FC = () => {
       console.error(e);
       const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred during analysis.';
       
-      // Handle specific API key errors and prompt for re-selection
+      // Handle specific API key errors
       if (errorMessage.includes('API key not valid') ||
           errorMessage.includes('invalid') ||
           errorMessage.includes('API Key must be set') ||
           errorMessage.includes('Requested entity was not found')) {
-        setError("Your API key appears to be invalid or missing. Please select a valid key and try again.");
-        setHasApiKey(false); // Reset to prompt for key selection
+        setError("The configured API key is invalid or missing. Please ensure the API_KEY environment variable is set correctly.");
       } else {
         setError(errorMessage);
       }
@@ -93,30 +53,6 @@ const App: React.FC = () => {
   }
   
   const renderContent = () => {
-    if (!hasApiKey) {
-      return (
-        <div className="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-xl shadow-lg text-center">
-          <h2 className="text-2xl font-bold mb-4 text-slate-800 dark:text-slate-100">API Key Required</h2>
-          <p className="mb-6 text-slate-600 dark:text-slate-300">
-            To begin analysis, please select your Gemini API key. 
-            This ensures secure access to the model.
-          </p>
-          <button
-            onClick={handleSelectKey}
-            className="bg-indigo-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
-          >
-            Select API Key
-          </button>
-           <p className="mt-4 text-xs text-slate-500 dark:text-slate-400">
-            For more details on API keys and billing, please refer to the{' '}
-            <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noopener noreferrer" className="text-indigo-500 hover:underline">
-              official documentation
-            </a>.
-          </p>
-        </div>
-      );
-    }
-    
     return (
       <>
         {isLoading && (
