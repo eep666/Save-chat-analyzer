@@ -20,33 +20,66 @@ interface ProgressIndicatorProps {
 
 const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({ progress, message }) => {
   const roundedProgress = Math.round(progress);
+  const radius = 40;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (roundedProgress / 100) * circumference;
 
   return (
-    <div className="flex flex-col items-center justify-center bg-white dark:bg-slate-800 p-8 rounded-lg shadow-md" aria-live="polite">
-        <p className="mb-2 text-lg font-semibold text-slate-700 dark:text-slate-300">
-            Analyzing Session...
-        </p>
+    <div 
+        className="flex flex-col items-center justify-center bg-slate-800 p-8 rounded-lg shadow-xl" 
+        aria-live="polite"
+        style={{backgroundColor: '#1e293b'}}
+    >
+      
+      <div className="relative h-28 w-28">
+        <svg className="h-full w-full" viewBox="0 0 100 100">
+          {/* Background track */}
+          <circle
+            className="stroke-current text-slate-700"
+            strokeWidth="8"
+            cx="50"
+            cy="50"
+            r={radius}
+            fill="transparent"
+          />
+          {/* Progress ring */}
+          <circle
+            className="stroke-current text-indigo-500 transition-all duration-500 ease-in-out"
+            strokeWidth="8"
+            strokeLinecap="round"
+            cx="50"
+            cy="50"
+            r={radius}
+            fill="transparent"
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+            style={{ transform: 'rotate(-90deg)', transformOrigin: '50% 50%' }}
+          />
+          {/* Percentage Text */}
+          <text
+            x="50"
+            y="52"
+            fontFamily="sans-serif"
+            fontSize="24"
+            fontWeight="bold"
+            textAnchor="middle"
+            alignmentBaseline="middle"
+            className="fill-current text-slate-200"
+          >
+            {`${roundedProgress}`}<tspan fontSize="12" dy="-0.6em">%</tspan>
+          </text>
+        </svg>
+      </div>
 
-        <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5 my-4">
-            <div 
-                className="bg-indigo-600 h-2.5 rounded-full transition-all duration-500 ease-out" 
-                style={{ width: `${roundedProgress}%` }}
-                role="progressbar"
-                aria-valuenow={roundedProgress}
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-label="Analysis progress"
-            ></div>
-        </div>
-        
-        <div className="flex justify-between w-full text-sm">
-            <p className="font-medium text-slate-500 dark:text-slate-400">
-                {message}
-            </p>
-            <p className="font-semibold text-indigo-600 dark:text-indigo-400">
-                {roundedProgress}%
-            </p>
-        </div>
+      <h2 className="mt-6 text-xl font-bold text-white">
+        Analyzing session log...
+      </h2>
+      <p className="mt-2 text-center text-sm text-slate-400 max-w-xs">
+         This may take a moment. We're extracting key insights for you.
+      </p>
+       <p className="mt-4 h-4 text-sm font-medium text-slate-300">
+        {message}
+      </p>
     </div>
   );
 };
