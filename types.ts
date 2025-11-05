@@ -1,14 +1,14 @@
 
-export interface ExtractedMessage {
-  learnerName: string;
-  quote: string;
+export interface GroupedMessage {
+  theme: string;
+  learners: string[];
 }
 
 export interface DetailedExtractionLog {
-  conceptualConfusion: ExtractedMessage[];
-  technicalIssues: ExtractedMessage[];
-  actionableFeedback: ExtractedMessage[];
-  positiveFeedback: ExtractedMessage[];
+  conceptualConfusion: GroupedMessage[];
+  technicalIssues: GroupedMessage[];
+  actionableFeedback: GroupedMessage[];
+  positiveFeedback: GroupedMessage[];
 }
 
 export interface ExecutiveSummary {

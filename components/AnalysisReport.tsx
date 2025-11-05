@@ -1,6 +1,6 @@
 
 import React from 'react';
-import type { AnalysisReportData, ExtractedMessage } from '../types';
+import type { AnalysisReportData, GroupedMessage } from '../types';
 import { SummaryIcon, ImprovementIcon, ActionIcon, ProblemIcon, HighlightIcon, LogIcon, UserIcon, QuoteIcon } from './icons';
 
 interface AnalysisReportProps {
@@ -19,15 +19,17 @@ const ReportSection: React.FC<{ title: string; icon: React.ReactNode; children: 
   </div>
 );
 
-const ExtractedMessageCard: React.FC<{ message: ExtractedMessage }> = ({ message }) => (
+const GroupedMessageCard: React.FC<{ message: GroupedMessage }> = ({ message }) => (
     <div className="p-4 border-l-4 border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 rounded-r-lg not-prose">
         <div className="flex items-start space-x-3">
-            <span className="flex-shrink-0 text-slate-500 dark:text-slate-400"><UserIcon/></span>
-            <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">{message.learnerName}</p>
-        </div>
-        <div className="flex items-start space-x-3 mt-2">
              <span className="flex-shrink-0 text-slate-400 dark:text-slate-500 mt-1"><QuoteIcon /></span>
-             <blockquote className="text-slate-600 dark:text-slate-300 text-sm italic p-0 m-0 border-none">"{message.quote}"</blockquote>
+             <p className="text-slate-700 dark:text-slate-200 font-semibold">"{message.theme}"</p>
+        </div>
+        <div className="flex items-start space-x-3 mt-2 pl-8">
+            <span className="flex-shrink-0 text-slate-500 dark:text-slate-400"><UserIcon/></span>
+            <p className="text-sm text-slate-600 dark:text-slate-300">
+                <span className="font-medium">Learners:</span> {message.learners.join(', ')}
+            </p>
         </div>
     </div>
 );
@@ -43,12 +45,12 @@ const AnalysisReport: React.FC<AnalysisReportProps> = ({ report }) => {
     detailedExtractionLog 
   } = report;
   
-  const renderExtractionLogSection = (title: string, messages: ExtractedMessage[]) => (
+  const renderExtractionLogSection = (title: string, messages: GroupedMessage[]) => (
     messages.length > 0 && (
       <>
         <h4 className="font-semibold mt-6 mb-3 text-lg">{title}</h4>
         <div className="space-y-4">
-          {messages.map((msg, index) => <ExtractedMessageCard key={index} message={msg} />)}
+          {messages.map((msg, index) => <GroupedMessageCard key={index} message={msg} />)}
         </div>
       </>
     )
