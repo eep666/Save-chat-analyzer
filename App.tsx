@@ -1,10 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import type { AnalysisReportData } from './types';
 import { analyzeChatLog } from './services/geminiService';
 import ChatInputForm from './components/ChatInputForm';
 import AnalysisReport from './components/AnalysisReport';
-import LoadingSpinner from './components/LoadingSpinner';
 import { HeaderIcon } from './components/icons';
 
 interface QuotaErrorDetails {
@@ -13,11 +12,98 @@ interface QuotaErrorDetails {
   retryDelay: string;
 }
 
+// --- New Progress Indicator Component ---
+interface ProgressIndicatorProps {
+  progress: number;
+  message: string;
+}
+
+const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({ progress, message }) => {
+  const roundedProgress = Math.round(progress);
+
+  return (
+    <div className="flex flex-col items-center justify-center bg-white dark:bg-slate-800 p-8 rounded-lg shadow-md" aria-live="polite">
+        <p className="mb-2 text-lg font-semibold text-slate-700 dark:text-slate-300">
+            Analyzing Session...
+        </p>
+
+        <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5 my-4">
+            <div 
+                className="bg-indigo-600 h-2.5 rounded-full transition-all duration-500 ease-out" 
+                style={{ width: `${roundedProgress}%` }}
+                role="progressbar"
+                aria-valuenow={roundedProgress}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label="Analysis progress"
+            ></div>
+        </div>
+        
+        <div className="flex justify-between w-full text-sm">
+            <p className="font-medium text-slate-500 dark:text-slate-400">
+                {message}
+            </p>
+            <p className="font-semibold text-indigo-600 dark:text-indigo-400">
+                {roundedProgress}%
+            </p>
+        </div>
+    </div>
+  );
+};
+// --- End of Component ---
+
+
 const App: React.FC = () => {
   const [report, setReport] = useState<AnalysisReportData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [quotaErrorDetails, setQuotaErrorDetails] = useState<QuotaErrorDetails | null>(null);
+
+  // State for progress simulation
+  const [progress, setProgress] = useState(0);
+  const [progressMessage, setProgressMessage] = useState('');
+  const progressIntervalRef = useRef<number | null>(null);
+
+  const stopProgress = () => {
+    if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+        progressIntervalRef.current = null;
+    }
+  };
+
+  const startProgress = () => {
+      stopProgress(); // Ensure no multiple intervals running
+      setProgress(0);
+      setProgressMessage("Initiating analysis...");
+
+      progressIntervalRef.current = window.setInterval(() => {
+          setProgress(prev => {
+              let newProgress = prev;
+              if (prev < 95) {
+                  // Simulate fast start, then slow down
+                  const increment = Math.random() * (15 - prev / 10);
+                  newProgress = Math.min(prev + increment, 95);
+              } else {
+                  // Creep towards 99 at the end
+                  newProgress = Math.min(prev + 0.5, 99);
+              }
+
+              if (newProgress >= 0 && newProgress < 20) {
+                  setProgressMessage("Parsing session log...");
+              } else if (newProgress >= 20 && newProgress < 45) {
+                  setProgressMessage("Filtering conversational noise...");
+              } else if (newProgress >= 45 && newProgress < 75) {
+                  setProgressMessage("Identifying key themes & questions...");
+              } else if (newProgress >= 75 && newProgress < 95) {
+                  setProgressMessage("Synthesizing insights...");
+              } else {
+                  setProgressMessage("Finalizing report...");
+              }
+              
+              return newProgress;
+          });
+      }, 500);
+  };
 
 
   const handleAnalyze = async (chatLog: string, instructorNames: string) => {
@@ -31,6 +117,7 @@ const App: React.FC = () => {
     }
 
     setIsLoading(true);
+    startProgress(); // Start the progress simulation
     setError(null);
     setReport(null);
     setQuotaErrorDetails(null);
@@ -79,7 +166,11 @@ const App: React.FC = () => {
       }
 
     } finally {
-      setIsLoading(false);
+      stopProgress();
+      setProgress(100); // Jump to 100 on completion
+      setTimeout(() => {
+          setIsLoading(false);
+      }, 300); // Small delay to show 100%
     }
   };
   
@@ -88,21 +179,15 @@ const App: React.FC = () => {
     setError(null);
     setIsLoading(false);
     setQuotaErrorDetails(null);
+    stopProgress();
+    setProgress(0);
   }
   
   const renderContent = () => {
     return (
       <>
         {isLoading && (
-          <div className="flex flex-col items-center justify-center bg-white dark:bg-slate-800 p-8 rounded-lg shadow-md">
-            <LoadingSpinner />
-            <p className="mt-4 text-lg font-semibold text-slate-700 dark:text-slate-300">
-              Analyzing session log...
-            </p>
-            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-              This may take a moment. We're extracting key insights for you.
-            </p>
-          </div>
+          <ProgressIndicator progress={progress} message={progressMessage} />
         )}
         
         {report && !isLoading && (
