@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { AnalysisReportData, GroupedMessage } from '../types';
 import { SummaryIcon, ImprovementIcon, ActionIcon, ProblemIcon, HighlightIcon, LogIcon, UserIcon, QuoteIcon } from './icons';
@@ -28,7 +27,7 @@ const GroupedMessageCard: React.FC<{ message: GroupedMessage }> = ({ message }) 
         <div className="flex items-start space-x-3 mt-2 pl-8">
             <span className="flex-shrink-0 text-slate-500 dark:text-slate-400"><UserIcon/></span>
             <p className="text-sm text-slate-600 dark:text-slate-300">
-                <span className="font-medium">Learners:</span> {message.learners.join(', ')}
+                <span className="font-medium">Learners ({message.learners.length}):</span> {message.learners.join(', ')}
             </p>
         </div>
     </div>
@@ -81,7 +80,7 @@ const AnalysisReport: React.FC<AnalysisReportProps> = ({ report }) => {
                     <li key={index}>
                         <strong>{item.action}: </strong>
                         {item.recommendation}
-                        <span className="text-sm text-slate-500 dark:text-slate-400"> (Reported by: {item.reportedBy.join(', ')})</span>
+                        <span className="text-sm text-slate-500 dark:text-slate-400"> (Reported by {item.reportedBy.length}: {item.reportedBy.join(', ')})</span>
                     </li>
                 ))}
             </ol>
@@ -93,7 +92,7 @@ const AnalysisReport: React.FC<AnalysisReportProps> = ({ report }) => {
                     {keyProblems.map((item, index) => (
                         <li key={index}>
                             {item.issue} 
-                            <span className="text-sm text-slate-500 dark:text-slate-400"> (Reported by: {item.reportedBy.join(', ')})</span>
+                            <span className="text-sm text-slate-500 dark:text-slate-400"> (Reported by {item.reportedBy.length}: {item.reportedBy.join(', ')})</span>
                         </li>
                     ))}
                 </ol>
@@ -103,7 +102,7 @@ const AnalysisReport: React.FC<AnalysisReportProps> = ({ report }) => {
                     {positiveHighlights.map((item, index) => (
                         <li key={index}>
                             {item.issue} 
-                            <span className="text-sm text-slate-500 dark:text-slate-400"> (Source: {item.reportedBy.join(', ')})</span>
+                            <span className="text-sm text-slate-500 dark:text-slate-400"> (Source - {item.reportedBy.length}: {item.reportedBy.join(', ')})</span>
                         </li>
                     ))}
                 </ol>
