@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useRef } from 'react';
 import { UploadIcon } from './icons';
 
@@ -29,7 +28,7 @@ const SAMPLE_LOG = `08:00:15 Instructor: Good morning everyone! Let's get starte
 
 const ChatInputForm: React.FC<ChatInputFormProps> = ({ onAnalyze, disabled }) => {
   const [chatLog, setChatLog] = useState<string>('');
-  const [instructorNames, setInstructorNames] = useState<string>('Instructor, Host, Admin');
+  const [instructorNames, setInstructorNames] = useState<string>('Team Be10x, Aditya Goenka, Aditya Kachave');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -83,9 +82,18 @@ const ChatInputForm: React.FC<ChatInputFormProps> = ({ onAnalyze, disabled }) =>
             value={instructorNames}
             onChange={(e) => setInstructorNames(e.target.value)}
             className="block w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            placeholder="e.g., Instructor, Host, Admin"
+            placeholder="e.g., Team Be10x, Aditya Goenka"
             required
+            aria-describedby="instructors-description"
           />
+          <div id="instructors-description" className="mt-3 text-xs text-slate-500 dark:text-slate-400 space-y-2">
+            <p>
+                <strong>Why is this required?</strong> The AI will completely ignore any messages sent by the names you list here. This is crucial for filtering out instructor monologue and focusing the analysis exclusively on learner feedback.
+            </p>
+            <p>
+                <strong>Example:</strong> <code className="text-indigo-600 dark:text-indigo-400 bg-slate-100 dark:bg-slate-700/50 px-1 py-0.5 rounded">Team Be10x, Aditya Goenka, Aditya Kachave</code>
+            </p>
+          </div>
         </div>
 
         <div>

@@ -16,7 +16,8 @@ export async function analyzeChatLog(chatLog: string, instructorNames: string): 
   `;
 
   try {
-    const responseStream = await ai.models.generateContentStream({
+    // Use the non-streaming generateContent method for a single JSON response.
+    const response = await ai.models.generateContent({
         model: "gemini-2.5-pro",
         contents: userPrompt,
         config: {
@@ -28,12 +29,9 @@ export async function analyzeChatLog(chatLog: string, instructorNames: string): 
         },
     });
 
-    let aggregatedResponse = "";
-    for await (const chunk of responseStream) {
-        aggregatedResponse += chunk.text;
-    }
+    // Access the response text directly, no aggregation needed.
+    const jsonText = response.text.trim();
 
-    const jsonText = aggregatedResponse.trim();
     if (!jsonText) {
         throw new Error("The AI returned an empty response. The input might be too complex or contain restricted content.");
     }
