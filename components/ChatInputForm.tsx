@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useRef } from 'react';
 import { UploadIcon } from './icons';
 
@@ -67,7 +68,7 @@ const ChatInputForm: React.FC<ChatInputFormProps> = ({ onAnalyze, disabled }) =>
     onAnalyze(chatLog, instructorNames);
   };
 
-  const buttonText = disabled ? 'Analyzing...' : 'Analyze Session';
+  const buttonText = disabled ? 'Analyzing...' : 'Analyze Chat';
 
   return (
     <div className="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-xl shadow-lg">

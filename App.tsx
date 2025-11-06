@@ -72,7 +72,7 @@ const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({ progress, message
       </div>
 
       <h2 className="mt-6 text-xl font-bold text-white">
-        Analyzing session log...
+        Analyzing chat log...
       </h2>
       <p className="mt-2 text-center text-sm text-slate-400 max-w-xs">
          This may take a moment. We're extracting key insights for you.
@@ -122,7 +122,7 @@ const App: React.FC = () => {
               }
 
               if (newProgress >= 0 && newProgress < 20) {
-                  setProgressMessage("Parsing session log...");
+                  setProgressMessage("Parsing chat log...");
               } else if (newProgress >= 20 && newProgress < 45) {
                   setProgressMessage("Filtering conversational noise...");
               } else if (newProgress >= 45 && newProgress < 75) {
@@ -230,7 +230,7 @@ const App: React.FC = () => {
                <button 
                 onClick={handleReset}
                 className="bg-indigo-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">
-                  Analyze Another Session
+                  Analyze Another Chat
                </button>
             </div>
           </div>
