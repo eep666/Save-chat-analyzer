@@ -57,7 +57,7 @@ const AnalysisReport: React.FC<AnalysisReportProps> = ({ report }) => {
 
   return (
     <div className="space-y-8">
-       <h2 className="text-3xl font-extrabold text-center text-slate-900 dark:text-white tracking-tight mb-8">📊 Live Session Analysis Report</h2>
+       <h2 className="text-3xl font-extrabold text-center text-slate-900 dark:text-white tracking-tight mb-8">📊 Save Chat Analysis Report</h2>
 
         <ReportSection title="Executive Summary" icon={<SummaryIcon />}>
             <ul className="list-disc pl-5 space-y-2">

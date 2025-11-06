@@ -251,7 +251,7 @@ const App: React.FC = () => {
             <div className="flex items-center space-x-3">
               <HeaderIcon />
               <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
-                Live Session Analyzer
+                Save Chat Analyzer
               </h1>
             </div>
           </div>
